@@ -1,29 +1,34 @@
-async function fetchData() {
-    const data = await fetch('https://kitek.ktkv.dev/marketplace/api/items')
-    const json = await data.json()
-    const container = document.getElementById("container")
-
-    const html = json.map((item) => `
+async function RenderProducts() {
+    const response = await fetch('https://kitek.ktkv.dev/marketplace/api/items');
+    const data = await response.json();
+    const containerElement = document.getElementById("container-products");
+    // data.forEach(item => {
+    //     const div = document.createElement('div')
+    //     div.className = 'item-card'
+    //     div.innerHTML = item.title
+    //     containerElement.appendChild(div)
+    // })
+    const cardsHtml = data.map((product) => `
 <div class="item-card">
-    <img src="${item.imageUrl}" alt="${item.title}"
+    <img src="${product.imageUrl}" alt="${product.title}"
         class="item-image" />
     <div class="item-content">
-        <span class="status-badge status-active">${item.status}</span>
-        <h3 class="item-title">${item.title}</h3>
+        <span class="status-badge status-active">${product.status}</span>
+        <h3 class="item-title">${product.title}</h3>
         <p class="item-description">
-            ${item.description}
+            ${product.description}
         </p>
         <div class="item-footer">
             <div>
-                <div class="item-price">${item.price}</div>
+                <div class="item-price">${product.price}</div>
                 <div class="bid-info">
-                    ${item.highestBid}
-                    <span class="bid-count">${item.bidCount}</span>
+                    ${product.highestBid}
+                    <span class="bid-count">${product.bidCount}</span>
                 </div>
             </div>
             <div class="item-meta">
                 <span class="item-seller">
-                    Продавец: ${item.username}
+                    Продавец: ${product.username}
                 </span>
             </div>
         </div>
@@ -31,43 +36,36 @@ async function fetchData() {
 </div>
 `
     ).join("")
-
-    container.innerHTML = html
-
-    const statvalue = document.getElementsByClassName("stat-value")
-    
-    statvalue[0].innerHTML = json.length
-
-    let a = 0
-    let b = 0
-    json.forEach(index => {
-        if (index.bidCount >= 1) {
-            b += 1;
-            a += index.bidCount
-        }
-
-    });
-    statvalue[1].innerHTML = a
-    statvalue[2].innerHTML = b
-
-    let x = 0
-    let y = 0
-    let z = 0
-    json.forEach(index => {
-       
-            x += 1;
-            y += index.price
-      
-
-    });
-    
-    z =Math.round(y/x);
-    
-    statvalue[3].innerHTML = z
-
-
-
-
+    containerElement.innerHTML = cardsHtml
 }
-
-fetchData()
+async function CalculateStats() {
+    const response = await fetch('https://kitek.ktkv.dev/marketplace/api/items');
+    const data = await response.json();
+    const statValueElements = document.getElementsByClassName("stat-value")
+    statValueElements[0].innerHTML = data.length
+    let totalBids = 0
+    let itemsWithBids = 0
+    data.forEach((product) => {
+        if (product.bidCount >= 1) {
+            itemsWithBids += 1;
+            totalBids += product.bidCount
+        }
+    });
+    statValueElements[1].innerHTML = totalBids
+    statValueElements[2].innerHTML = itemsWithBids
+    let itemsCounter = 0
+    let priceSum = 0
+    // while(i < data.length) {
+    //     priceSum += data[i].price
+    //     i++
+    // }
+    data.forEach((product) => {
+        itemsCounter += 1;
+        priceSum += product.price
+    });
+    const averagePrice = Math.round(priceSum / itemsCounter);
+    statValueElements[3].innerHTML = averagePrice
+    console.log('Статистика:', { totalItems: data.length, totalBids, itemsWithBids, averagePrice })
+}
+CalculateStats();
+RenderProducts();
